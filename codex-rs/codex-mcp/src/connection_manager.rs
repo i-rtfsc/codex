@@ -39,7 +39,7 @@ use crate::tools::tool_with_model_visible_input_schema;
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
-use async_channel::Sender;
+use codex_async_utils::budgeted_sender::BudgetedSender as Sender;
 use codex_config::Constrained;
 use codex_config::McpServerTransportConfig;
 use codex_config::types::OAuthCredentialsStoreMode;
@@ -216,7 +216,7 @@ impl McpConnectionManager {
         auth_entries: HashMap<String, McpAuthStatusEntry>,
         approval_policy: &Constrained<AskForApproval>,
         submit_id: String,
-        tx_event: Sender<Event>,
+        tx_event: impl Into<Sender<Event>>,
         initial_permission_profile: PermissionProfile,
         runtime_context: McpRuntimeContext,
         codex_home: PathBuf,
@@ -228,6 +228,7 @@ impl McpConnectionManager {
         auth: Option<&CodexAuth>,
         elicitation_reviewer: Option<ElicitationReviewerHandle>,
     ) -> (Self, CancellationToken) {
+        let tx_event = tx_event.into();
         let cancel_token = CancellationToken::new();
         let mut clients = HashMap::new();
         let mut server_metadata = HashMap::new();

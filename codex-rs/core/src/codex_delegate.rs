@@ -157,6 +157,7 @@ pub(crate) async fn run_codex_thread_interactive(
     Ok(Codex {
         tx_sub: tx_ops,
         rx_event: rx_sub,
+        event_budget: None,
         agent_status: codex.agent_status.clone(),
         session: Arc::clone(&codex.session),
         session_loop_termination: codex.session_loop_termination.clone(),
@@ -241,6 +242,7 @@ pub(crate) async fn run_codex_thread_one_shot(
 
     Ok(Codex {
         rx_event: rx_bridge,
+        event_budget: None,
         tx_sub: tx_closed,
         agent_status,
         session,

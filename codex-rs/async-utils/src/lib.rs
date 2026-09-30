@@ -2,6 +2,8 @@ use async_trait::async_trait;
 use std::future::Future;
 use tokio_util::sync::CancellationToken;
 
+pub mod budgeted_sender;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum CancelErr {
     Cancelled,

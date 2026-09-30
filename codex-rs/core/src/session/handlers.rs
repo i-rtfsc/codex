@@ -741,7 +741,19 @@ pub(super) async fn submission_loop(
 ) {
     // To break out of this loop, send Op::Shutdown.
     let mut shutdown_received = false;
-    while let Ok(sub) = rx_sub.recv().await {
+    loop {
+        let sub = tokio::select! {
+            biased;
+            _ = sess.tx_event.failed() => {
+                rx_sub.close();
+                tracing::error!(reason = sess.tx_event.failure(), "native event delivery failed; shutting down session");
+                break;
+            }
+            sub = rx_sub.recv() => match sub {
+                Ok(sub) => sub,
+                Err(_) => break,
+            },
+        };
         debug!(?sub, "Submission");
         let dispatch_span = submission_dispatch_span(&sub);
         let should_exit = async {

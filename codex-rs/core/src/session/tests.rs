@@ -4911,7 +4911,7 @@ pub(crate) async fn make_session_and_context() -> (Session, TurnContext) {
     let session = Session {
         thread_id,
         installation_id: "11111111-1111-4111-8111-111111111111".to_string(),
-        tx_event,
+        tx_event: tx_event.into(),
         agent_status: agent_status_tx,
         out_of_band_elicitation_paused: watch::channel(false).0,
         state: Mutex::new(state),
@@ -5815,6 +5815,7 @@ async fn submit_with_id_captures_current_span_trace_context() {
     let codex = Codex {
         tx_sub,
         rx_event,
+        event_budget: None,
         agent_status,
         session: Arc::new(session),
         session_loop_termination: completed_session_loop_termination(),
@@ -6534,6 +6535,7 @@ async fn shutdown_and_wait_allows_multiple_waiters() {
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event,
+        event_budget: None,
         agent_status,
         session: Arc::new(session),
         session_loop_termination: session_loop_termination_from_handle(session_loop_handle),
@@ -6572,6 +6574,7 @@ async fn shutdown_and_wait_waits_when_shutdown_is_already_in_progress() {
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event,
+        event_budget: None,
         agent_status,
         session: Arc::new(session),
         session_loop_termination: session_loop_termination_from_handle(session_loop_handle),
@@ -6610,6 +6613,7 @@ async fn shutdown_and_wait_shuts_down_cached_guardian_subagent() {
     let parent_codex = Codex {
         tx_sub: parent_tx_sub,
         rx_event: parent_rx_event,
+        event_budget: None,
         agent_status: parent_agent_status,
         session: Arc::clone(&parent_session),
         session_loop_termination: session_loop_termination_from_handle(parent_session_loop_handle),
@@ -6633,6 +6637,7 @@ async fn shutdown_and_wait_shuts_down_cached_guardian_subagent() {
     let child_codex = Codex {
         tx_sub: child_tx_sub,
         rx_event: child_rx_event,
+        event_budget: None,
         agent_status: child_agent_status,
         session: Arc::new(child_session),
         session_loop_termination: session_loop_termination_from_handle(child_session_loop_handle),
@@ -6666,6 +6671,7 @@ async fn cached_guardian_subagent_exposes_its_rollout_path() {
     let child_codex = Codex {
         tx_sub: child_tx_sub,
         rx_event: child_rx_event,
+        event_budget: None,
         agent_status: child_agent_status,
         session: Arc::new(child_session),
         session_loop_termination: session_loop_termination_from_handle(child_session_loop_handle),
@@ -6699,6 +6705,7 @@ async fn shutdown_and_wait_shuts_down_tracked_ephemeral_guardian_review() {
     let parent_codex = Codex {
         tx_sub: parent_tx_sub,
         rx_event: parent_rx_event,
+        event_budget: None,
         agent_status: parent_agent_status,
         session: Arc::clone(&parent_session),
         session_loop_termination: session_loop_termination_from_handle(parent_session_loop_handle),
@@ -6722,6 +6729,7 @@ async fn shutdown_and_wait_shuts_down_tracked_ephemeral_guardian_review() {
     let child_codex = Codex {
         tx_sub: child_tx_sub,
         rx_event: child_rx_event,
+        event_budget: None,
         agent_status: child_agent_status,
         session: Arc::new(child_session),
         session_loop_termination: session_loop_termination_from_handle(child_session_loop_handle),
@@ -6975,7 +6983,7 @@ where
     let session = Arc::new(Session {
         thread_id,
         installation_id: "11111111-1111-4111-8111-111111111111".to_string(),
-        tx_event,
+        tx_event: tx_event.into(),
         agent_status: agent_status_tx,
         out_of_band_elicitation_paused: watch::channel(false).0,
         state: Mutex::new(state),

@@ -10,7 +10,7 @@ use std::process::ExitStatus;
 use std::time::Duration;
 use std::time::Instant;
 
-use async_channel::Sender;
+use codex_async_utils::budgeted_sender::BudgetedSender as Sender;
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
 use tokio::io::BufReader;

@@ -42,6 +42,7 @@ async fn forward_events_cancelled_while_send_blocked_shuts_down_delegate() {
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event: rx_events,
+        event_budget: None,
         agent_status,
         session: Arc::clone(&session),
         session_loop_termination: completed_session_loop_termination(),
@@ -119,6 +120,7 @@ async fn forward_ops_preserves_submission_trace_context() {
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event: rx_events,
+        event_budget: None,
         agent_status,
         session,
         session_loop_termination: completed_session_loop_termination(),
@@ -195,6 +197,7 @@ async fn handle_request_permissions_uses_tool_call_id_for_round_trip() {
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event: rx_events_child,
+        event_budget: None,
         agent_status,
         session: Arc::clone(&parent_session),
         session_loop_termination: completed_session_loop_termination(),
@@ -300,6 +303,7 @@ async fn handle_exec_approval_uses_call_id_for_guardian_review_and_approval_id_f
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event: rx_events_child,
+        event_budget: None,
         agent_status,
         session: Arc::clone(&parent_session),
         session_loop_termination: completed_session_loop_termination(),

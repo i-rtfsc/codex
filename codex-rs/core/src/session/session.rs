@@ -22,7 +22,7 @@ use tokio::sync::Semaphore;
 pub(crate) struct Session {
     pub(crate) thread_id: ThreadId,
     pub(crate) installation_id: String,
-    pub(super) tx_event: Sender<Event>,
+    pub(super) tx_event: codex_async_utils::budgeted_sender::BudgetedSender<Event>,
     pub(super) agent_status: watch::Sender<AgentStatus>,
     pub(super) out_of_band_elicitation_paused: watch::Sender<bool>,
     pub(super) state: Mutex<SessionState>,
@@ -479,7 +479,7 @@ impl Session {
         auth_manager: Arc<AuthManager>,
         models_manager: SharedModelsManager,
         exec_policy: Arc<ExecPolicyManager>,
-        tx_event: Sender<Event>,
+        tx_event: impl Into<codex_async_utils::budgeted_sender::BudgetedSender<Event>>,
         agent_status: watch::Sender<AgentStatus>,
         initial_history: InitialHistory,
         session_source: SessionSource,
@@ -495,6 +495,7 @@ impl Session {
         attestation_provider: Option<Arc<dyn AttestationProvider>>,
         multi_agent_version: Option<MultiAgentVersion>,
     ) -> anyhow::Result<Arc<Self>> {
+        let tx_event = tx_event.into();
         debug!(
             "Configuring session: model={}; provider={:?}",
             session_configuration.collaboration_mode.model(),

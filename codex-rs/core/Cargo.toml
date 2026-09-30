@@ -4,6 +4,9 @@ license.workspace = true
 name = "codex-core"
 version.workspace = true
 
+[features]
+native-bounded-events = []
+
 [lib]
 name = "codex_core"
 path = "src/lib.rs"

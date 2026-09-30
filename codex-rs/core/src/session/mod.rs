@@ -372,6 +372,7 @@ use codex_utils_stream_parser::ProposedPlanSegment;
 pub struct Codex {
     pub(crate) tx_sub: Sender<Submission>,
     pub(crate) rx_event: Receiver<Event>,
+    pub(crate) event_budget: Option<codex_async_utils::budgeted_sender::BudgetedSender<Event>>,
     // Last known status of the agent.
     pub(crate) agent_status: watch::Receiver<AgentStatus>,
     pub(crate) session: Arc<Session>,
@@ -503,7 +504,7 @@ impl Codex {
             inherited_multi_agent_version,
         } = args;
         let (tx_sub, rx_sub) = async_channel::bounded(SUBMISSION_CHANNEL_CAPACITY);
-        let (tx_event, rx_event) = async_channel::unbounded();
+        let (tx_event, rx_event) = crate::event_queue::channel();
 
         let primary_environment = environment_selections.primary_environment();
         let mut user_instruction_warnings = Vec::new();
@@ -666,6 +667,7 @@ impl Codex {
         let codex = Codex {
             tx_sub,
             rx_event,
+            event_budget: tx_event.is_budgeted().then_some(tx_event),
             agent_status: agent_status_rx,
             session,
             session_loop_termination: session_loop_termination_from_handle(session_loop_handle),
@@ -749,6 +751,34 @@ impl Codex {
     }
 
     pub async fn next_event(&self) -> CodexResult<Event> {
+        if let Some(budget) = &self.event_budget {
+            let event = tokio::select! {
+                biased;
+                _ = budget.failed() => {
+                    self.rx_event.close();
+                    while let Ok(event) = self.rx_event.try_recv() {
+                        budget.received(&event);
+                    }
+                    return Err(CodexErr::Io(std::io::Error::other(
+                        budget.failure().unwrap_or("native event failure signal without reason"),
+                    )));
+                }
+                event = self.rx_event.recv() => event,
+            };
+            return match event {
+                Ok(event) => {
+                    budget.received(&event);
+                    if let Some(reason) = budget.failure() {
+                        return Err(CodexErr::Io(std::io::Error::other(reason)));
+                    }
+                    Ok(event)
+                }
+                Err(_) => match budget.failure() {
+                    Some(reason) => Err(CodexErr::Io(std::io::Error::other(reason))),
+                    None => Err(CodexErr::InternalAgentDied),
+                },
+            };
+        }
         let event = self
             .rx_event
             .recv()
@@ -1065,7 +1095,7 @@ impl Session {
         self.out_of_band_elicitation_paused.send_replace(paused);
     }
 
-    pub(crate) fn get_tx_event(&self) -> Sender<Event> {
+    pub(crate) fn get_tx_event(&self) -> codex_async_utils::budgeted_sender::BudgetedSender<Event> {
         self.tx_event.clone()
     }
 

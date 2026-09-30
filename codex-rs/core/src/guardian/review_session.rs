@@ -1066,6 +1066,7 @@ mod tests {
                 codex: Codex {
                     tx_sub,
                     rx_event,
+                    event_budget: None,
                     agent_status,
                     session,
                     session_loop_termination: crate::session::completed_session_loop_termination(),
