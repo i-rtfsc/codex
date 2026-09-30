@@ -2527,17 +2527,45 @@ impl Session {
         state.granted_permissions(environment_id)
     }
 
+    pub async fn notify_dynamic_tool_response(&self, call_id: &str, response: DynamicToolResponse) {
+        self.notify_dynamic_tool_response_with_turn(call_id, /*turn_id*/ None, response)
+            .await;
+    }
+
+    pub async fn notify_dynamic_tool_response_for_turn(
+        &self,
+        call_id: &str,
+        turn_id: &str,
+        response: DynamicToolResponse,
+    ) {
+        self.notify_dynamic_tool_response_with_turn(call_id, Some(turn_id), response)
+            .await;
+    }
+
     #[expect(
         clippy::await_holding_invalid_type,
-        reason = "active turn checks and turn state updates must remain atomic"
+        reason = "turn identity and waiter removal must remain atomic"
     )]
-    pub async fn notify_dynamic_tool_response(&self, call_id: &str, response: DynamicToolResponse) {
+    async fn notify_dynamic_tool_response_with_turn(
+        &self,
+        call_id: &str,
+        turn_id: Option<&str>,
+        response: DynamicToolResponse,
+    ) {
         let entry = {
             let mut active = self.active_turn.lock().await;
             match active.as_mut() {
                 Some(at) => {
-                    let mut ts = at.turn_state.lock().await;
-                    ts.remove_pending_dynamic_tool(call_id)
+                    if turn_id.is_some_and(|expected| {
+                        !at.task
+                            .as_ref()
+                            .is_some_and(|task| task.turn_context.sub_id == expected)
+                    }) {
+                        None
+                    } else {
+                        let mut ts = at.turn_state.lock().await;
+                        ts.remove_pending_dynamic_tool(call_id)
+                    }
                 }
                 None => None,
             }
@@ -2547,7 +2575,9 @@ impl Session {
                 tx_response.send(response).ok();
             }
             None => {
-                warn!("No pending dynamic tool call found for call_id: {call_id}");
+                warn!(
+                    "No matching pending dynamic tool call found for call_id: {call_id}, turn_id: {turn_id:?}"
+                );
             }
         }
     }

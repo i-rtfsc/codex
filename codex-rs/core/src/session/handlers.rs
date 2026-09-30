@@ -822,6 +822,15 @@ pub(super) async fn submission_loop(
                     dynamic_tool_response(&sess, id, response).await;
                     false
                 }
+                Op::DynamicToolResponseForTurn {
+                    id,
+                    turn_id,
+                    response,
+                } => {
+                    sess.notify_dynamic_tool_response_for_turn(&id, &turn_id, response)
+                        .await;
+                    false
+                }
                 Op::RefreshMcpServers { config } => {
                     refresh_mcp_servers(&sess, config).await;
                     false

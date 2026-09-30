@@ -582,6 +582,13 @@ pub enum Op {
         response: DynamicToolResponse,
     },
 
+    /// Resolve a dynamic tool request only within its originating turn.
+    DynamicToolResponseForTurn {
+        id: String,
+        turn_id: String,
+        response: DynamicToolResponse,
+    },
+
     /// Request MCP servers to reinitialize and refresh cached tool lists.
     RefreshMcpServers { config: McpServerRefreshConfig },
 
@@ -751,6 +758,7 @@ impl Op {
             Self::UserInputAnswer { .. } => "user_input_answer",
             Self::RequestPermissionsResponse { .. } => "request_permissions_response",
             Self::DynamicToolResponse { .. } => "dynamic_tool_response",
+            Self::DynamicToolResponseForTurn { .. } => "dynamic_tool_response_for_turn",
             Self::RefreshMcpServers { .. } => "refresh_mcp_servers",
             Self::ReloadUserConfig => "reload_user_config",
             Self::Compact => "compact",
