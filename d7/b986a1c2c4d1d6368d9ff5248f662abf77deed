@@ -1,0 +1,31 @@
+codex-rs/core/src/session/handlers.rs
+  s_5508ce13e90799::t_d71f095c0607d6 829-833
+  h_8b376749578497 825-828
+codex-rs/core/src/session/mod.rs
+  s_5508ce13e90799::t_d71f095c0607d6 2532-2544,2547
+  h_8b376749578497 2530-2531,2549-2554,2559-2568,2578-2580
+codex-rs/protocol/src/protocol.rs
+  s_5508ce13e90799::t_d71f095c0607d6 586-591,761
+  h_8b376749578497 585
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d7b986a1c2c4d1d6368d9ff5248f662abf77deed",
+  "prompts": {},
+  "humans": {
+    "h_8b376749578497": {
+      "author": "Solo <anqi.huang@outlook.com>"
+    }
+  },
+  "sessions": {
+    "s_5508ce13e90799": {
+      "agent_id": {
+        "tool": "copilot",
+        "id": "a6da9123-d612-44b3-800a-0e44f5f41a31",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Solo <anqi.huang@outlook.com>"
+    }
+  }
+}
